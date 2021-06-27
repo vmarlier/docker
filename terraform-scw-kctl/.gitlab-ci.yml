@@ -1,0 +1,22 @@
+image: docker:18.09.7
+
+variables:
+  DOCKER_TLS_CERTDIR: "/certs"
+  DOCKER_HOST: "tcp://127.0.0.1:2375"
+
+services:
+  - docker:18.09.7-dind
+
+stages:
+  - build
+
+build:
+  before_script:
+    - docker info
+  stage: build
+  script:
+    - docker login $REGISTRY_PATH -u $PROJECT_BOT -p $PROJECT_ACCESS_TOKEN
+    - docker build -t $REGISTRY_PATH/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:0.1.$CI_COMMIT_SHORT_SHA .
+    - docker push $REGISTRY_PATH/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:0.1.$CI_COMMIT_SHORT_SHA
+    - docker tag $REGISTRY_PATH/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:0.1.$CI_COMMIT_SHORT_SHA $REGISTRY_PATH/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:latest
+    - docker push $REGISTRY_PATH/$CI_PROJECT_NAMESPACE/$CI_PROJECT_NAME:latest
